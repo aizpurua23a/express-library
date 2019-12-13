@@ -9,6 +9,10 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
+//db
+var mongoose = require('mongoose');
+var mongoDB = 'mongodb+srv://aizpusuby:140194Aa@cluster0-pl1qc.azure.mongodb.net/test?retryWrites=true&w=majority'
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
