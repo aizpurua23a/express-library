@@ -1,17 +1,76 @@
+//Requirements
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
+
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+const azure = require('./azure.env');
+
+//Model Import
+var Author = require('./models/Author');
+Author.find(function (err){
+  if (err) return handleError(err);
+});
+var Story = require('./models/Story');
+Story.find(function (err){
+  if (err) return handleError(err);
+});
+
+
 var app = express();
 
-//db
+//db - connection
 var mongoose = require('mongoose');
-var mongoDB = 'mongodb+srv://aizpusuby:140194Aa@cluster0-pl1qc.azure.mongodb.net/test?retryWrites=true&w=majority'
+var mongoDB = 'mongodb+srv://aizpusuby:<password>@cluster0-pl1qc.azure.mongodb.net/test?retryWrites=true&w=majority'
+mongoDB = mongoDB.replace('<password>',azure_pass);
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
+
+
+
+//Save Author and story
+var bob = new Author({name: 'Bob Smith'});
+
+bob.save(function (err) {
+  if (err) return handleError(err);
+
+  //Bob now exists, we create a story
+  var story = new Story({
+    title: 'Bob goes sledding',
+    author: bob._id
+  })
+
+  story.save(function (err){
+    if (err) return handleError(err);
+  })
+})
+
+
+//find story
+
+Story
+.findOne({title: 'Bob goes sledding'})
+.populate('author') //this populates the author id with their actual info
+.exec(function (err, story){
+  if (err) return handleError(err);
+  console.log('The author is %s', story.author.name);
+
+})
+
+
+
+
+
+//Get default connection;
+var db = mongoose.connection;
+
+//Bind connection to error event (to get notification of connection errors)
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -43,3 +102,11 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+//functions - library
+function mongofind(query,fields){
+  authors.find(query, fields, function(err, alive){
+    if (err) return handleError(err);
+    console.log(alive);
+  });
+}
